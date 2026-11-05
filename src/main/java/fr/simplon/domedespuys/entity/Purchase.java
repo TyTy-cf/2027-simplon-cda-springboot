@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -30,5 +32,12 @@ public class Purchase {
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private User user;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(nullable = false)
+    private Address address;
+
+    @OneToMany(mappedBy = "purchase")
+    private List<PurchaseProduct> purchaseProducts = new ArrayList<>();
 
 }

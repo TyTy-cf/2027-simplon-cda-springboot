@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
@@ -38,6 +39,9 @@ public class User {
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "user")
-    List<Purchase> purchases;
+    private List<Purchase> purchases = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private List<Address> addresses = new ArrayList<>();
 
 }
