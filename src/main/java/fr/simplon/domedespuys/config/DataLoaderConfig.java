@@ -3,9 +3,11 @@ package fr.simplon.domedespuys.config;
 import com.github.javafaker.Faker;
 import fr.simplon.domedespuys.entity.Address;
 import fr.simplon.domedespuys.entity.Brand;
+import fr.simplon.domedespuys.entity.Product;
 import fr.simplon.domedespuys.entity.User;
 import fr.simplon.domedespuys.repository.AddressRepository;
 import fr.simplon.domedespuys.repository.BrandRepository;
+import fr.simplon.domedespuys.repository.ProductRepository;
 import fr.simplon.domedespuys.repository.UserRepository;
 import fr.simplon.domedespuys.utils.Slugger;
 import lombok.AllArgsConstructor;
@@ -15,9 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 
 @Component
 @AllArgsConstructor
@@ -26,6 +26,7 @@ public class DataLoaderConfig implements CommandLineRunner {
     private UserRepository userRepository;
     private AddressRepository addressRepository;
     private BrandRepository brandRepository;
+    private ProductRepository productRepository;
     private Slugger slugger;
 
     @Override
@@ -33,6 +34,7 @@ public class DataLoaderConfig implements CommandLineRunner {
         createUsers();
         createAddress();
         createBrand();
+        createProduct();
     }
 
     private void createBrand() {
@@ -114,6 +116,45 @@ public class DataLoaderConfig implements CommandLineRunner {
 
             userRepository.flush();
         }
+    }
+
+    private void createProduct() {
+        if (0 == productRepository.count()) {
+            Faker faker = new Faker(Locale.of("fr"));
+            List<String> productsUsed = new ArrayList<>();
+
+            for (int i = 0; i < 300; i++) {
+                String name;
+                do {
+                    name = faker.book().title();
+                } while (productsUsed.contains(name));
+                productsUsed.add(name);
+
+                Product product = getProduct(
+                    faker,
+                    name,
+                    faker.book().author() + " : " + faker.lorem().words(80),
+                    faker.number().numberBetween(499, 3999)
+                );
+
+                Optional<Brand> optionalBrand = brandRepository.findById((long) faker.number().numberBetween(1,50));
+                optionalBrand.ifPresent(product::setBrand);
+
+                productRepository.save(product);
+            }
+
+            productRepository.flush();
+        }
+    }
+
+    private Product getProduct(Faker faker, String label, String description, int price) {
+        Product product = new Product();
+        product.setLabel(label);
+        product.setCreatedAt(getRandomDate(faker, 0, 10));
+        product.setPrice(price);
+        product.setSlug(slugger.slugify(label));
+        product.setDescription(description);
+        return product;
     }
 
     private LocalDateTime getRandomDate(Faker faker, int min, int max) {
