@@ -41,4 +41,9 @@ public class Product {
     @OneToMany(mappedBy = "product")
     private List<Image> images = new ArrayList<>();
 
+    public void addImage(Image image) {
+        images.add(image);
+        image.setProduct(this);
+    }
+
 }
