@@ -1,14 +1,8 @@
 package fr.simplon.domedespuys.config;
 
 import com.github.javafaker.Faker;
-import fr.simplon.domedespuys.entity.Address;
-import fr.simplon.domedespuys.entity.Brand;
-import fr.simplon.domedespuys.entity.Product;
-import fr.simplon.domedespuys.entity.User;
-import fr.simplon.domedespuys.repository.AddressRepository;
-import fr.simplon.domedespuys.repository.BrandRepository;
-import fr.simplon.domedespuys.repository.ProductRepository;
-import fr.simplon.domedespuys.repository.UserRepository;
+import fr.simplon.domedespuys.entity.*;
+import fr.simplon.domedespuys.repository.*;
 import fr.simplon.domedespuys.utils.Slugger;
 import lombok.AllArgsConstructor;
 import org.jspecify.annotations.NonNull;
@@ -27,7 +21,12 @@ public class DataLoaderConfig implements CommandLineRunner {
     private AddressRepository addressRepository;
     private BrandRepository brandRepository;
     private ProductRepository productRepository;
+    private ImageRepository imageRepository;
+    private PurchaseRepository purchaseRepository;
+    private PurchaseProductRepository purchaseProductRepository;
     private Slugger slugger;
+
+    private final int NB_USERS = 200;
 
     @Override
     public void run(String @NonNull ... args) {
@@ -35,6 +34,24 @@ public class DataLoaderConfig implements CommandLineRunner {
         createAddress();
         createBrand();
         createProduct();
+        createImages();
+        createPurchase();
+        createPurchaseProduct();
+    }
+
+    private void createPurchaseProduct() {
+        if (0 == purchaseProductRepository.count()) {
+            List<Purchase> purchases = purchaseRepository.findAll();
+            for (Purchase purchase : purchases) {
+                createPurchaseProductByPurchase(purchase);
+
+                do {
+                    createPurchaseProductByPurchase(purchase);
+                } while(hasProbability(1, 3));
+            }
+
+            purchaseProductRepository.flush();
+        }
     }
 
     private void createBrand() {
@@ -57,7 +74,7 @@ public class DataLoaderConfig implements CommandLineRunner {
         if (0 == addressRepository.count()) {
             Faker faker = new Faker(Locale.of("fr"));
 
-            for (int i = 0; i < 150; i++) {
+            for (int i = 0; i < (NB_USERS + 150); i++) {
                 Address address = new Address();
                 address.setCity(faker.address().city());
                 address.setCountry("France");
@@ -100,7 +117,7 @@ public class DataLoaderConfig implements CommandLineRunner {
         if (0 == userRepository.count()) {
             Faker faker = new Faker(Locale.of("fr"));
 
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < NB_USERS; i++) {
                 User user = new User();
                 user.setFirstName(faker.name().firstName());
                 user.setLastName(faker.name().lastName());
@@ -126,15 +143,15 @@ public class DataLoaderConfig implements CommandLineRunner {
             for (int i = 0; i < 300; i++) {
                 String name;
                 do {
-                    name = faker.book().title();
+                    name = faker.commerce().productName();
                 } while (productsUsed.contains(name));
                 productsUsed.add(name);
 
                 Product product = getProduct(
                     faker,
                     name,
-                    faker.book().author() + " : " + faker.lorem().words(80),
-                    faker.number().numberBetween(499, 3999)
+                    name + " : " + faker.lorem().words(80),
+                    faker.number().numberBetween(499, 30000)
                 );
 
                 Optional<Brand> optionalBrand = brandRepository.findById((long) faker.number().numberBetween(1,50));
@@ -145,6 +162,101 @@ public class DataLoaderConfig implements CommandLineRunner {
 
             productRepository.flush();
         }
+    }
+
+    public void createImages() {
+        if (0 == imageRepository.count()) {
+            List<Product> products = productRepository.findAll();
+            for (Product product : products) {
+                createImagesByProduct(product, true);
+
+                do {
+                    createImagesByProduct(product, false);
+                } while(hasProbability(1, 2));
+            }
+
+            imageRepository.flush();
+        }
+    }
+
+    public void createPurchase() {
+        if(0 == purchaseRepository.count()){
+            Faker faker = new Faker(Locale.of("fr"));
+
+            for (int i = 0; i < 500; i++) {
+                Purchase purchase = new Purchase();
+                String tmpNumber;
+                if (i < 10) {
+                    tmpNumber = "0000000000" + i;
+                } else if (i < 100) {
+                    tmpNumber = "000000000" + i;
+                } else {
+                    tmpNumber = "00000000" + i;
+                }
+                String number = "PUR-" + LocalDateTime.now().getYear() + "-" + tmpNumber;
+                purchase.setNumber(number);
+
+                User user;
+                List<Address> addresses;
+                Random random = new Random();
+
+                do {
+                    Long idUser = random.nextLong(1,100);
+                    Optional<User> optionalUser = userRepository.findById(idUser);
+                    user = optionalUser.orElseThrow();
+                    addresses = addressRepository.findAllByUser(user);
+                } while (addresses.isEmpty());
+
+                purchase.setUser(user);
+                purchase.setAddress(addresses.getFirst());
+
+                int year = user.getCreatedAt().getYear();
+                int currentYear = LocalDate.now().getYear();
+                int yearBetween = currentYear - year;
+                purchase.setCreatedAt(getRandomDate(faker, 0, yearBetween));
+
+                if (yearBetween > 1) {
+                    purchase.setStatus(EnumPurchaseStatus.DELIVERED.getValue());
+                } else {
+                    int status = faker.number().numberBetween(1, 5);
+                    switch (status) {
+                        case 1:
+                            purchase.setStatus(EnumPurchaseStatus.PENDING.getValue());
+                            break;
+                        case 2:
+                            purchase.setStatus(EnumPurchaseStatus.PAID.getValue());
+                            break;
+                        case 3:
+                            purchase.setStatus(EnumPurchaseStatus.SHIPPED.getValue());
+                            break;
+                        default:
+                            purchase.setStatus(EnumPurchaseStatus.CANCELLED.getValue());
+                            break;
+                    }
+                }
+
+                purchaseRepository.save(purchase);
+            }
+            purchaseRepository.flush();
+        }
+    }
+
+    private void createPurchaseProductByPurchase(Purchase purchase) {
+        Faker faker = new Faker(Locale.of("fr"));
+        PurchaseProduct purchaseProduct = new PurchaseProduct();
+        purchaseProduct.setPurchase(purchase);
+        purchaseProduct.setQuantity(faker.number().numberBetween(1, 6));
+
+        Optional<Product> productOptional = productRepository.findById(faker.number().numberBetween(1L, 300L));
+        productOptional.ifPresent(purchaseProduct::setProduct);
+
+        int priceProduct = purchaseProduct.getProduct().getPrice();
+        purchaseProduct.setPrice(priceProduct);
+        if (hasProbability(1, 6)) {
+            purchaseProduct.setPrice((int)(priceProduct * 1.2));
+        }
+
+        purchaseProductRepository.save(purchaseProduct);
     }
 
     private Product getProduct(Faker faker, String label, String description, int price) {
@@ -159,6 +271,16 @@ public class DataLoaderConfig implements CommandLineRunner {
 
     private LocalDateTime getRandomDate(Faker faker, int min, int max) {
         return new java.sql.Date(faker.date().birthday(min, max).getTime()).toLocalDate().atTime(0, 0);
+    }
+
+    private void createImagesByProduct(Product product, boolean isDefault) {
+        Image image = new Image();
+        Random rand = new Random();
+        image.setPath("https://picsum.photos/400/300?r=" + rand.nextInt(300));
+        image.setExtension("png");
+        image.setDefault(isDefault);
+        image.setProduct(product);
+        imageRepository.save(image);
     }
 
     private boolean hasProbability(int expected, int max) {
