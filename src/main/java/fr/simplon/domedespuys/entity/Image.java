@@ -1,5 +1,8 @@
 package fr.simplon.domedespuys.entity;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import fr.simplon.domedespuys.view.BrandView;
+import fr.simplon.domedespuys.view.ImageView;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,15 +16,19 @@ public class Image {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonView(ImageView.Id.class)
     private Long id;
 
     @Column(columnDefinition = "TEXT")
+    @JsonView(ImageView.Path.class)
     private String path;
 
     @Column(nullable = false, length = 180)
+    @JsonView(ImageView.Extension.class)
     private String extension;
 
     @Column(nullable = false)
+    @JsonView(ImageView.IsDefault.class)
     private boolean isDefault = false;
 
     @ManyToOne(optional = false)
