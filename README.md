@@ -3,6 +3,8 @@
 
 ## 1. Création des Interfaces restantes
 
+Pour le moment vous devez seulement créer les interfaces et les DTO suivants, aucun contrôleur ni corps de méthodes n'est demandé. 
+
 - `IUserService` implémente les interfaces suivantes : 
   - `ICreate` (UserPostDTO : email, password, firstName, lastName) -> set createdAt
   - `IUpdate` (UserPutDTO : firstname, lastname, phone)
