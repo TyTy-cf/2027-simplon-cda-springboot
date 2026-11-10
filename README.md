@@ -26,15 +26,38 @@ Pour le moment vous devez seulement créer les interfaces et les DTO suivants, a
     - `ICollection`
 
 - `IPurchaseService` implémente les interfaces suivantes :
-    - `ICreate` (PurchasePostDTO : address [AddressDTO], purchaseProducts [List<PurchaseProductDTO>]) -> set createdAt, status [PENDING], user (prendre un user lambda, pour le moment), number [généré : PUR-ANNEE-0000ID_USER] + création des PurchaseProduct
+    - `ICreate` (PurchasePostDTO : addressId [Long], purchaseProducts [List<PurchaseProductDTO>]) -> set createdAt, status [PENDING], user (prendre un user lambda, pour le moment), number [généré : PUR-ANNEE-0000ID_USER] + création des PurchaseProduct
     - `IUpdate` (PurchasePutDTO : status)
     - `IGetItem`
     - `ICollection`
 
-- `IPurchaseProductService` implémente les interfaces suivantes :
-    - `ICreatePurchaseProduct` : renvoie un objet `PurchaseProduct` ; prend en paramètre un `PurchaseProductDTO`et un `Purchase`
+- `PurchaseProductServiceImpl` implémente les interfaces suivantes :
+    - `IPurchaseProductService` : renvoie un objet `PurchaseProduct` ; prend en paramètre un `PurchaseProductDTO`et un `Purchase`
 
 - `PurchaseProductDTO`
   - int qty
   - int price
   - Long idProduct
+
+
+## 2. Implémenter correctement les services
+
+
+### 2.1. Rendre l'existant fonctionnel (again) 
+
+
+- Faire l'implémentation des méthodes GET (item & collection) dans les contrôleurs précédemment créés
+- Réutiliser ces méthodes dans les contrôleurs adéquats :
+  - Product : GET item; GET collection
+  - User : GET item
+  - Purchase : GET item; GET collection
+
+
+### 2.2. Compléter...
+
+
+- Implémenter les méthodes POST, PUT et DELETE pour les contrôleurs où cela est nécessaire, avec leur implémentation dans le service adéquat
+- Il faudra créé les contrôleurs suivants :
+  - Address
+  - Image
+    (Ne pas faire de PurchaseProductController !!!!)
