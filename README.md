@@ -17,11 +17,12 @@ Pour le moment vous devez seulement créer les interfaces et les DTO suivants, a
     - `IDelete`
 
 - `IImageService` implémente les interfaces suivantes :
+    - `ICreate` (`ImageDTO`  : path, isDefault) -> utilisé depuis le `IProductService`
     - `IDelete`
 
 - `IProductService` implémente les interfaces suivantes :
-    - `ICreate` (ProductPostDTO : label, description, price, brand, images [List<String>]) -> set createdAt
-    - `IUpdate` (ProductPutDTO : label, description, price, brand, images [List<String>])
+    - `ICreate` (ProductPostDTO : label, description, price, brand, images [List<ImageDTO>]) -> set createdAt
+    - `IUpdate` (ProductPutDTO : label, description, price, brand, images [List<ImageDTO>])
     - `IGetItem`
     - `ICollection`
 
