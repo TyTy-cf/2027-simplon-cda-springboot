@@ -26,6 +26,11 @@ public class ImageServiceImpl implements IImageService {
     }
 
     @Override
+    public void flush() {
+        imageRepository.flush();
+    }
+
+    @Override
     public boolean delete(String id) {
         return false;
     }

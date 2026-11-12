@@ -8,4 +8,6 @@ public interface IImageService extends IDelete {
 
     Image create(ImageDTO dto, Product product);
 
+    void flush();
+
 }
