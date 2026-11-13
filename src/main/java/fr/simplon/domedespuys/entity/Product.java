@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ public class Product {
     private String slug;
 
     @Column(nullable = false)
+    @CreationTimestamp
     @JsonView(ProductView.CreatedAt.class)
     private LocalDateTime createdAt;
 
@@ -53,8 +55,9 @@ public class Product {
     private List<Image> images = new ArrayList<>();
 
     public void addImage(Image image) {
-        images.add(image);
-        image.setProduct(this);
+        if (!images.contains(image)) {
+            images.add(image);
+        }
     }
 
     @JsonView(ProductView.MainImage.class)

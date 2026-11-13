@@ -2,6 +2,7 @@ package fr.simplon.domedespuys.service.interfaces;
 
 import fr.simplon.domedespuys.dto.BrandDTO;
 import fr.simplon.domedespuys.entity.Brand;
+import fr.simplon.domedespuys.service.interfaces.dao.*;
 
 public interface IBrandService extends
         ICreate<Brand, BrandDTO>,

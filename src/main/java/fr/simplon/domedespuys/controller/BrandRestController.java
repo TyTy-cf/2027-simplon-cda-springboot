@@ -5,9 +5,9 @@ import fr.simplon.domedespuys.dto.BrandDTO;
 import fr.simplon.domedespuys.entity.Brand;
 import fr.simplon.domedespuys.service.interfaces.IBrandService;
 import fr.simplon.domedespuys.view.BrandView;
-import fr.simplon.domedespuys.view.ExceptionView;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,6 +32,7 @@ public class BrandRestController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     @JsonView(BrandView.BrandDetailView.class)
     public Brand createBrand(@Valid @RequestBody BrandDTO dto) {
         return brandService.create(dto);
@@ -44,7 +45,7 @@ public class BrandRestController {
     }
 
     @DeleteMapping("/{id}")
-    @JsonView({BrandView.BrandDetailView.class, ExceptionView.ExceptionViewFull.class})
+    @JsonView(BrandView.BrandDetailView.class)
     public boolean delete(@PathVariable String id) {
         return brandService.delete(id);
     }
